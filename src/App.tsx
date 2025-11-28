@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Dumbbell, Clock, Plus, X, Save, Trash2, 
-  ChevronDown, ChevronUp, Zap, BookOpen, Timer, 
+  ChevronDown, BookOpen, Timer, 
   PlayCircle, History, LayoutDashboard, CalendarDays, 
   Calculator, TrendingUp, Flame, CheckCircle2, HeartPulse, Activity
 } from 'lucide-react';
