@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   Dumbbell, Clock, Plus, Trash2, 
   ChevronDown, BookOpen, Timer, 
-  PlayCircle, History, LayoutDashboard, CalendarDays, 
+  History, LayoutDashboard, 
   Calculator, Flame, CheckCircle2, X, Save
 } from 'lucide-react';
 
@@ -220,15 +220,6 @@ function App() {
       nome: '', grupo: '', series: 3, repeticoes: '',
       cargaAlvo: '', descanso: '60', instrucoes: '', dica: ''
     });
-  };
-
-  // ================================
-  // ======== SALVAR PROGRESSO =====
-  // ================================
-  const salvarCarga = (id: number, valor: string) => {
-    const novo = { ...logCargas, [id]: valor };
-    setLogCargas(novo);
-    localStorage.setItem('gymtech_logs', JSON.stringify(novo));
   };
 
   // Registrar treino concluído
