@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Dumbbell, Clock, Plus, X, Save, Trash2, 
+  Dumbbell, Clock, Plus, Trash2, 
   ChevronDown, BookOpen, Timer, 
   PlayCircle, History, LayoutDashboard, CalendarDays, 
-  Calculator, TrendingUp, Flame, CheckCircle2, HeartPulse, Activity
+  Calculator, Flame, CheckCircle2
 } from 'lucide-react';
 
 // --- 1. CONFIGURAÇÕES E SONS ---
