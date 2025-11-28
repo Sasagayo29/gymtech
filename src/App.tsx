@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Dumbbell, Clock, Plus, Trash2, 
-  ChevronDown, BookOpen, Timer, 
-  History, LayoutDashboard, 
-  Calculator, Flame, CheckCircle2, X, Save
+  Dumbbell, Clock, Plus, X, Save, Trash2, 
+  ChevronDown, ChevronUp, Zap, BookOpen, Timer, 
+  PlayCircle, History, LayoutDashboard, CalendarDays, 
+  Calculator, TrendingUp, Flame, CheckCircle2, HeartPulse, Activity
 } from 'lucide-react';
 
 // --- 1. CONFIGURAÇÕES E SONS ---
@@ -20,7 +20,7 @@ interface Exercicio {
   series: number;
   repeticoes: string;
   cargaAlvo: string;
-  descanso: string;
+  descanso: string; // segundos
   instrucoes: string; 
   dica: string; 
 }
@@ -42,14 +42,11 @@ interface RegistroHistorico {
   duracaoReal: number;
 }
 
-// --- 3. BANCO DE DADOS MASSIVO ---
+// --- 3. BANCO DE DADOS MASSIVO (TREINOS REAIS) ---
 const dadosIniciais: FichaTreino[] = [
+  // === AQUECIMENTO ===
   {
-    id: 1,
-    titulo: "Mobilidade Superior (Pré-Treino)",
-    descricao: "Essencial antes de treinos de Peito/Costas/Ombro para soltar as articulações.",
-    nivel: 'Aquecimento',
-    duracaoMin: 10,
+    id: 1, titulo: "Mobilidade Superior (Pré-Treino)", descricao: "Essencial antes de treinos de Peito/Costas/Ombro para soltar as articulações.", nivel: 'Aquecimento', duracaoMin: 10,
     imagemCapa: "https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?auto=format&fit=crop&q=80&w=600",
     exercicios: [
       { id: 1, nome: "Rotação de Ombros (Bastão)", grupo: "Ombros", series: 2, repeticoes: "15", cargaAlvo: "Bastão PVC", descanso: "0", instrucoes: "Segure o bastão com pegada larga e passe por trás da cabeça até o glúteo e volte.", dica: "Mantenha os cotovelos estendidos." },
@@ -57,22 +54,94 @@ const dadosIniciais: FichaTreino[] = [
     ]
   },
   {
-    id: 2,
-    titulo: "Treino de Peito - Iniciante",
-    descricao: "Desenvolvimento básico do peitoral para quem está começando.",
-    nivel: 'Iniciante',
-    duracaoMin: 45,
-    imagemCapa: "https://images.unsplash.com/photo-1534367507877-0edd93bd013b?auto=format&fit=crop&q=80&w=600",
+    id: 2, titulo: "Mobilidade Inferior (Liberar Quadril)", descricao: "Destrave seu agachamento com essa rotina rápida.", nivel: 'Aquecimento', duracaoMin: 12,
+    imagemCapa: "https://images.unsplash.com/photo-1552196563-55cd4e45efb3?auto=format&fit=crop&q=80&w=600",
     exercicios: [
-      { id: 1, nome: "Supino Reto", grupo: "Peito", series: 3, repeticoes: "10-12", cargaAlvo: "20kg", descanso: "60", instrucoes: "Deitado no banco, empurre a barra para cima até estender os cotovelos.", dica: "Mantenha as escápulas retraídas." },
-      { id: 2, nome: "Crucifixo", grupo: "Peito", series: 3, repeticoes: "12-15", cargaAlvo: "8kg", descanso: "45", instrucoes: "Deitado no banco, abra os braços com halteres até sentir alongamento no peito.", dica: "Mantenha cotovelos levemente flexionados." }
+      { id: 1, nome: "Agachamento Profundo Isométrico", grupo: "Quadril", series: 2, repeticoes: "30 seg", cargaAlvo: "Corporal", descanso: "30", instrucoes: "Agache tudo que puder e segure lá embaixo, empurrando os joelhos para fora com os cotovelos.", dica: "Mantenha o calcanhar no chão." },
+      { id: 2, nome: "World's Greatest Stretch", grupo: "Global", series: 2, repeticoes: "8/lado", cargaAlvo: "Corporal", descanso: "30", instrucoes: "Posição de avanço, coloque a mão oposta no chão e gire o tronco olhando para o teto.", dica: "Sinta alongar o flexor do quadril." }
+    ]
+  },
+
+  // === CARDIO ===
+  {
+    id: 10, titulo: "HIIT Esteira (Queima Gordura)", descricao: "Alta intensidade intervalada. Acelera o metabolismo por 48h.", nivel: 'Cardio', duracaoMin: 20,
+    imagemCapa: "https://images.unsplash.com/photo-1534258936925-c48947387603?auto=format&fit=crop&q=80&w=600",
+    exercicios: [
+      { id: 1, nome: "Tiro de Velocidade", grupo: "Cardio", series: 10, repeticoes: "30 seg", cargaAlvo: "Velocidade Max", descanso: "30", instrucoes: "Corra na máxima velocidade possível por 30 segundos.", dica: "Cuidado ao subir na esteira em movimento." },
+      { id: 2, nome: "Descanso Ativo (Caminhada)", grupo: "Cardio", series: 10, repeticoes: "30 seg", cargaAlvo: "Leve", descanso: "0", instrucoes: "Ande devagar para recuperar o fôlego.", dica: "Respire fundo." }
+    ]
+  },
+  {
+    id: 11, titulo: "Cardio LISS (Pós-Treino)", descricao: "Baixa intensidade para queima de gordura sem catabolizar.", nivel: 'Cardio', duracaoMin: 30,
+    imagemCapa: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&q=80&w=600",
+    exercicios: [
+      { id: 1, nome: "Caminhada Inclinada", grupo: "Cardio", series: 1, repeticoes: "30 min", cargaAlvo: "Inclinação 12", descanso: "0", instrucoes: "Velocidade 4-5km/h com inclinação alta.", dica: "Não segure no apoio da esteira, balance os braços." }
+    ]
+  },
+
+  // === INICIANTE ===
+  {
+    id: 100, titulo: "Adaptação A (Superior)", descricao: "Foco em aprender os movimentos de empurrar e puxar.", nivel: 'Iniciante', duracaoMin: 45,
+    imagemCapa: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&q=80&w=600",
+    exercicios: [
+      { id: 1, nome: "Supino Reto Máquina", grupo: "Peito", series: 3, repeticoes: "15", cargaAlvo: "Moderada", descanso: "60", instrucoes: "Empurre controlando a volta.", dica: "Mantenha ombros baixos." },
+      { id: 2, nome: "Puxada Frontal", grupo: "Costas", series: 3, repeticoes: "15", cargaAlvo: "Moderada", descanso: "60", instrucoes: "Puxe a barra até o peito.", dica: "Cotovelos para baixo." },
+      { id: 3, nome: "Desenvolvimento Máquina", grupo: "Ombros", series: 3, repeticoes: "12", cargaAlvo: "Leve", descanso: "60", instrucoes: "Empurre para cima da cabeça.", dica: "Não arqueie a coluna." },
+      { id: 4, nome: "Rosca Direta Halteres", grupo: "Bíceps", series: 3, repeticoes: "15", cargaAlvo: "Leve", descanso: "45", instrucoes: "Suba girando o punho.", dica: "Cotovelo colado no corpo." }
+    ]
+  },
+  {
+    id: 101, titulo: "Adaptação B (Inferior)", descricao: "Fortalecimento de pernas e core.", nivel: 'Iniciante', duracaoMin: 45,
+    imagemCapa: "https://images.unsplash.com/photo-1574680096141-1cddd32e0343?auto=format&fit=crop&q=80&w=600",
+    exercicios: [
+      { id: 1, nome: "Leg Press Horizontal", grupo: "Pernas", series: 3, repeticoes: "15", cargaAlvo: "Moderada", descanso: "60", instrucoes: "Empurre a plataforma.", dica: "Não estique totalmente o joelho." },
+      { id: 2, nome: "Cadeira Extensora", grupo: "Quadríceps", series: 3, repeticoes: "15", cargaAlvo: "Moderada", descanso: "60", instrucoes: "Chute para cima e segure 1s.", dica: "Contraia a coxa no topo." },
+      { id: 3, nome: "Mesa Flexora", grupo: "Posterior", series: 3, repeticoes: "15", cargaAlvo: "Moderada", descanso: "60", instrucoes: "Puxe o calcanhar no glúteo.", dica: "Não levante o quadril do banco." },
+      { id: 4, nome: "Prancha Abdominal", grupo: "Core", series: 3, repeticoes: "30s", cargaAlvo: "Isometria", descanso: "45", instrucoes: "Segure o corpo reto.", dica: "Contraia o abdômen." }
+    ]
+  },
+
+  // === INTERMEDIÁRIO ===
+  {
+    id: 200, titulo: "Push (Empurrar)", descricao: "Peito, Ombros e Tríceps com foco em hipertrofia.", nivel: 'Intermediário', duracaoMin: 60,
+    imagemCapa: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=600",
+    exercicios: [
+      { id: 1, nome: "Supino Inclinado Halteres", grupo: "Peito", series: 4, repeticoes: "8-10", cargaAlvo: "Alta", descanso: "90", instrucoes: "Banco 30 graus.", dica: "Alongue bem na descida." },
+      { id: 2, nome: "Crucifixo Máquina", grupo: "Peito", series: 3, repeticoes: "12", cargaAlvo: "Mod", descanso: "60", instrucoes: "Feche os braços na frente.", dica: "Cotovelos levemente flexionados." },
+      { id: 3, nome: "Elevação Lateral", grupo: "Ombros", series: 4, repeticoes: "15", cargaAlvo: "Mod", descanso: "45", instrucoes: "Levante até a linha do ombro.", dica: "Dedinho para cima." },
+      { id: 4, nome: "Tríceps Polia", grupo: "Tríceps", series: 4, repeticoes: "12", cargaAlvo: "Alta", descanso: "60", instrucoes: "Estenda o cotovelo.", dica: "Ombros imóveis." }
+    ]
+  },
+  {
+    id: 201, titulo: "Pull (Puxar)", descricao: "Costas, Trapézio e Bíceps para largura e densidade.", nivel: 'Intermediário', duracaoMin: 60,
+    imagemCapa: "https://images.unsplash.com/photo-1603287681836-e174ce71808e?auto=format&fit=crop&q=80&w=600",
+    exercicios: [
+      { id: 1, nome: "Puxada Alta", grupo: "Costas", series: 4, repeticoes: "10", cargaAlvo: "Alta", descanso: "90", instrucoes: "Puxe na frente do rosto.", dica: "Jogue os cotovelos nas costelas." },
+      { id: 2, nome: "Remada Curvada", grupo: "Costas", series: 3, repeticoes: "10", cargaAlvo: "Alta", descanso: "90", instrucoes: "Tronco inclinado, puxe a barra no umbigo.", dica: "Coluna reta sempre." },
+      { id: 3, nome: "Rosca Scott", grupo: "Bíceps", series: 3, repeticoes: "12", cargaAlvo: "Mod", descanso: "60", instrucoes: "Barra W, apoio axilar.", dica: "Alongue tudo na descida." }
+    ]
+  },
+
+  // === AVANÇADO ===
+  {
+    id: 300, titulo: "Leg Day (Quadríceps Focus)", descricao: "Volume alto para pernas gigantes.", nivel: 'Avançado', duracaoMin: 80,
+    imagemCapa: "https://images.unsplash.com/photo-1434608519344-49d77a699ded?auto=format&fit=crop&q=80&w=600",
+    exercicios: [
+      { id: 1, nome: "Agachamento Livre", grupo: "Pernas", series: 5, repeticoes: "6-8", cargaAlvo: "85% 1RM", descanso: "180", instrucoes: "Quebre a paralela.", dica: "Respiração Bracing." },
+      { id: 2, nome: "Leg Press 45 (Pés Baixos)", grupo: "Quad", series: 4, repeticoes: "12", cargaAlvo: "Falha", descanso: "90", instrucoes: "Pés na parte inferior da plataforma.", dica: "Amplitude máxima." },
+      { id: 3, nome: "Cadeira Extensora (Drop-set)", grupo: "Quad", series: 3, repeticoes: "15+15", cargaAlvo: "Mod", descanso: "60", instrucoes: "Faça até a falha, reduza peso, repita.", dica: "Segure 1s no topo." },
+      { id: 4, nome: "Panturrilha em Pé", grupo: "Pantu", series: 5, repeticoes: "15", cargaAlvo: "Alta", descanso: "45", instrucoes: "Suba tudo, desça tudo.", dica: "Pausa no fundo." }
+    ]
+  },
+  {
+    id: 301, titulo: "Old School Arms (Arnold)", descricao: "Super-séries de Bíceps e Tríceps para pump máximo.", nivel: 'Avançado', duracaoMin: 50,
+    imagemCapa: "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&q=80&w=600",
+    exercicios: [
+      { id: 1, nome: "Rosca Direta + Tríceps Testa", grupo: "Braços", series: 4, repeticoes: "10+10", cargaAlvo: "Alta", descanso: "60", instrucoes: "Faça um exercício e imediatamente o outro.", dica: "Sem descanso entre os dois." },
+      { id: 2, nome: "Rosca Martelo + Tríceps Corda", grupo: "Braços", series: 4, repeticoes: "12+12", cargaAlvo: "Mod", descanso: "60", instrucoes: "Foco na porção lateral.", dica: "Esmague no final." }
     ]
   }
 ];
-
-// =======================================================
-// ===================== COMPONENTE APP ==================
-// =======================================================
 
 function App() {
   // --- ESTADOS GERAIS ---
@@ -80,642 +149,386 @@ function App() {
   const [treinos, setTreinos] = useState<FichaTreino[]>(dadosIniciais);
   const [filtroNivel, setFiltroNivel] = useState<Nivel | 'Todos'>('Todos');
   const [fichaSelecionada, setFichaSelecionada] = useState<FichaTreino | null>(null);
-
+  
   // --- PERSISTÊNCIA & GAMIFICATION ---
   const [historico, setHistorico] = useState<RegistroHistorico[]>([]);
+  const [logCargas, setLogCargas] = useState<Record<number, string>>({});
   const [streak, setStreak] = useState(0);
 
   // --- TIMER ---
   const [timerAtivo, setTimerAtivo] = useState(false);
   const [tempoRestante, setTempoRestante] = useState(0);
+  const [tempoTotalTimer, setTempoTotalTimer] = useState(60);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // --- FORMULÁRIO DE EXERCÍCIO ---
-  const [novoExercicio, setNovoExercicio] = useState({
-    nome: '', grupo: '', series: 3, repeticoes: '',
-    cargaAlvo: '', descanso: '60', instrucoes: '', dica: ''
+  // --- FORMULÁRIO DE EXERCÍCIO (DENTRO DO MODAL) ---
+  const [novoExercicio, setNovoExercicio] = useState({ 
+    nome: '', grupo: '', series: 3, repeticoes: '', cargaAlvo: '', descanso: '60', instrucoes: '', dica: '' 
   });
-
-  // --- FORMULÁRIO NOVA FICHA ---
+  
+  // --- FORMULÁRIO DE NOVA FICHA ---
   const [modalNovoTreinoAberto, setModalNovoTreinoAberto] = useState(false);
   const [novoTreino, setNovoTreino] = useState<Partial<FichaTreino>>({
-    titulo: '',
-    descricao: '',
-    nivel: 'Iniciante',
-    duracaoMin: 60,
+    titulo: '', descricao: '', nivel: 'Iniciante', duracaoMin: 60,
     imagemCapa: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=600'
   });
 
-  // --- CALCULADORA 1RM ---
+  // --- CALCULADORA ---
   const [calcPeso, setCalcPeso] = useState('');
   const [calcReps, setCalcReps] = useState('');
   const [resultado1RM, setResultado1RM] = useState<number | null>(null);
 
   // --- INIT ---
   useEffect(() => {
+    const logs = localStorage.getItem('gymtech_logs');
     const hist = localStorage.getItem('gymtech_history');
     const strk = localStorage.getItem('gymtech_streak');
-
+    
+    if (logs) setLogCargas(JSON.parse(logs));
     if (hist) setHistorico(JSON.parse(hist));
     if (strk) setStreak(Number(strk));
 
-    audioRef.current = new Audio(SOM_BIP_URL);
+    audioRef.current = new Audio(SOM_BIP_URL); 
   }, []);
 
-  // ================================
-  // ===== TIMER — CONTAGEM ========
-  // ================================
+  // --- TIMER LOOP ---
   useEffect(() => {
-    if (!timerAtivo) return;
+    let intervalo: any;
+    if (timerAtivo && tempoRestante > 0) {
+      intervalo = setInterval(() => setTempoRestante((p) => p - 1), 1000);
+    } else if (tempoRestante === 0 && timerAtivo) {
+      setTimerAtivo(false);
+      audioRef.current?.play().catch(e => console.log("Audio block", e));
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+    }
+    return () => clearInterval(intervalo);
+  }, [timerAtivo, tempoRestante]);
 
-    const interval = setInterval(() => {
-      setTempoRestante((t) => {
-        if (t <= 1) {
-          audioRef.current?.play();
-          setTimerAtivo(false);
-          return 0;
-        }
-        return t - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [timerAtivo]);
-
-  // Inicia o descanso usando o valor do exercício
+  // --- AÇÕES ---
   const iniciarDescanso = (segundos: number) => {
+    setTempoTotalTimer(segundos);
     setTempoRestante(segundos);
     setTimerAtivo(true);
   };
 
-  // ================================
-  // ========== 1RM CALC ============ 
-  // ================================
-  const calcular1RM = () => {
-    const peso = Number(calcPeso);
-    const reps = Number(calcReps);
-
-    if (!peso || !reps || reps < 1) {
-      setResultado1RM(null);
-      return;
-    }
-
-    const estimativa = peso * (1 + reps / 30);
-    setResultado1RM(Number(estimativa.toFixed(1)));
+  const atualizarCarga = (id: number, valor: string) => {
+    const novo = { ...logCargas, [id]: valor };
+    setLogCargas(novo);
+    localStorage.setItem('gymtech_logs', JSON.stringify(novo));
   };
 
-  // ================================
-  // ======= ADICIONAR TREINO ====== 
-  // ================================
-  const adicionarNovoTreino = () => {
-    if (!novoTreino.titulo || !novoTreino.descricao) return;
-
-    const novo: FichaTreino = {
-      id: Date.now(),
-      titulo: novoTreino.titulo!,
-      descricao: novoTreino.descricao!,
-      nivel: novoTreino.nivel as Nivel,
-      duracaoMin: novoTreino.duracaoMin!,
-      imagemCapa: novoTreino.imagemCapa!,
-      exercicios: []
-    };
-
-    setTreinos((prev) => [...prev, novo]);
-    setModalNovoTreinoAberto(false);
-
-    setNovoTreino({
-      titulo: '',
-      descricao: '',
-      nivel: 'Iniciante',
-      duracaoMin: 60,
-      imagemCapa: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=600'
-    });
-  };
-
-  // ================================
-  // ===== ADICIONAR EXERCÍCIO ===== 
-  // ================================
-  const adicionarExercicio = () => {
+  const finalizarTreino = () => {
     if (!fichaSelecionada) return;
-    if (!novoExercicio.nome) return;
-
-    const novo: Exercicio = {
+    const novoRegistro: RegistroHistorico = {
       id: Date.now(),
-      ...novoExercicio
-    };
-
-    const atualizado = treinos.map((t) => 
-      t.id === fichaSelecionada.id 
-        ? { ...t, exercicios: [...t.exercicios, novo] }
-        : t
-    );
-
-    setTreinos(atualizado);
-    setFichaSelecionada(atualizado.find(t => t.id === fichaSelecionada.id) || null);
-
-    setNovoExercicio({
-      nome: '', grupo: '', series: 3, repeticoes: '',
-      cargaAlvo: '', descanso: '60', instrucoes: '', dica: ''
-    });
-  };
-
-  // Registrar treino concluído
-  const registrarHistorico = (treino: FichaTreino) => {
-    const item: RegistroHistorico = {
-      id: Date.now(),
-      treinoNome: treino.titulo,
+      treinoNome: fichaSelecionada.titulo,
       data: new Date().toISOString(),
-      duracaoReal: treino.duracaoMin
+      duracaoReal: fichaSelecionada.duracaoMin
+    };
+    
+    const novoHistorico = [novoRegistro, ...historico];
+    setHistorico(novoHistorico);
+    localStorage.setItem('gymtech_history', JSON.stringify(novoHistorico));
+    
+    const ultimoTreino = historico[0];
+    const hoje = new Date().toDateString();
+    if (!ultimoTreino || new Date(ultimoTreino.data).toDateString() !== hoje) {
+       const novoStreak = streak + 1;
+       setStreak(novoStreak);
+       localStorage.setItem('gymtech_streak', String(novoStreak));
+    }
+
+    setFichaSelecionada(null);
+    setAbaAtiva('historico');
+    setTimeout(() => alert(`TREINO CONCLUÍDO! 🔥\nOfensiva: ${streak + 1} dias!`), 100);
+  };
+
+  // --- CRUD FICHA/EXERCICIO ---
+  const salvarNovoTreino = (e: React.FormEvent) => {
+    e.preventDefault();
+    const novoId = treinos.length > 0 ? Math.max(...treinos.map(t => t.id)) + 1 : 1;
+    setTreinos([{ ...novoTreino, id: novoId, nivel: novoTreino.nivel as Nivel, exercicios: [] } as FichaTreino, ...treinos]);
+    setModalNovoTreinoAberto(false);
+  };
+
+  const adicionarExercicio = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fichaSelecionada) return;
+    
+    const item: Exercicio = { 
+      id: Date.now(), 
+      ...novoExercicio, 
+      series: Number(novoExercicio.series),
+      instrucoes: novoExercicio.instrucoes || 'Execute com controle.', 
+      dica: novoExercicio.dica || 'Foco na técnica.' 
     };
 
-    const novo = [...historico, item];
-    setHistorico(novo);
-    localStorage.setItem('gymtech_history', JSON.stringify(novo));
-
-    // Streak
-    const novoStreak = streak + 1;
-    setStreak(novoStreak);
-    localStorage.setItem('gymtech_streak', String(novoStreak));
+    const novosTreinos = treinos.map(t => t.id === fichaSelecionada.id ? { ...t, exercicios: [...t.exercicios, item] } : t);
+    setTreinos(novosTreinos);
+    setFichaSelecionada(novosTreinos.find(t => t.id === fichaSelecionada.id) || null);
+    
+    // Limpar form
+    setNovoExercicio({ nome: '', grupo: '', series: 3, repeticoes: '', cargaAlvo: '', descanso: '60', instrucoes: '', dica: '' });
   };
 
-  // ================================
-  // ========= RENDER ABAS ==========
-  // ================================
-  const renderAbaConteudo = () => {
-    switch (abaAtiva) {
-      case 'home':
-        return (
-          <div className="px-4 mt-4 space-y-4">
-            <div className="bg-gradient-to-r from-emerald-900/30 to-blue-900/30 border border-emerald-500/20 rounded-2xl p-4">
-              <div className="flex items-center gap-3">
-                <Flame className="text-orange-500" size={24} />
-                <div>
-                  <h3 className="font-bold">Sequência Atual</h3>
-                  <p className="text-2xl font-bold">{streak} dias</p>
-                </div>
-              </div>
-            </div>
-
-            <h2 className="text-lg font-bold">Seus Treinos Recentes</h2>
-            {treinos.slice(0, 3).map((treino) => (
-              <div
-                key={treino.id}
-                onClick={() => setFichaSelecionada(treino)}
-                className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-lg hover:border-emerald-500/40 transition cursor-pointer"
-              >
-                <img 
-                  src={treino.imagemCapa}
-                  className="w-full h-32 object-cover"
-                />
-                <div className="p-3">
-                  <h3 className="font-semibold">{treino.titulo}</h3>
-                  <div className="flex items-center gap-2 text-xs text-white/40 mt-1">
-                    <Clock size={12}/> {treino.duracaoMin} min
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        );
-
-      case 'treinos':
-        return fichaSelecionada === null ? (
-          <div className="px-4 mt-4 space-y-4">
-            {treinos
-              .filter(t => filtroNivel === 'Todos' || t.nivel === filtroNivel)
-              .map((treino) => (
-                <div
-                  key={treino.id}
-                  onClick={() => setFichaSelecionada(treino)}
-                  className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-lg hover:border-emerald-500/40 transition cursor-pointer"
-                >
-                  <img 
-                    src={treino.imagemCapa}
-                    className="w-full h-40 object-cover"
-                  />
-                  <div className="p-4 space-y-2">
-                    <h2 className="text-lg font-bold">{treino.titulo}</h2>
-                    <p className="text-sm text-white/60">{treino.descricao}</p>
-                    <div className="flex items-center gap-2 text-xs text-white/40">
-                      <Clock size={14}/> {treino.duracaoMin} min
-                      <span className="px-2 py-1 bg-emerald-900/20 text-emerald-400 rounded-full ml-auto">
-                        {treino.nivel}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-          </div>
-        ) : (
-          <>
-            <div className="px-4 flex items-center gap-3 mt-4">
-              <button
-                onClick={() => setFichaSelecionada(null)}
-                className="p-2 bg-white/10 rounded-full"
-              >
-                <ChevronDown size={16}/>
-              </button>
-              <h2 className="text-xl font-bold">{fichaSelecionada.titulo}</h2>
-            </div>
-
-            <img 
-              src={fichaSelecionada.imagemCapa}
-              className="w-full h-48 object-cover mt-3"
-            />
-
-            <div className="px-4 mt-4 space-y-2">
-              <p className="text-white/70">{fichaSelecionada.descricao}</p>
-              <div className="flex items-center gap-3 text-sm text-white/50">
-                <Clock size={15}/> {fichaSelecionada.duracaoMin} min
-                <span className="px-3 py-1 bg-emerald-900/20 text-emerald-400 rounded-full">
-                  {fichaSelecionada.nivel}
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-4 px-4">
-              <button
-                onClick={() => registrarHistorico(fichaSelecionada)}
-                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 rounded-lg font-bold flex items-center justify-center gap-2"
-              >
-                <CheckCircle2 size={18} />
-                MARCAR COMO CONCLUÍDO
-              </button>
-            </div>
-
-            <div className="mt-4 px-4 space-y-4">
-              {fichaSelecionada.exercicios.map((exercicio) => (
-                <div
-                  key={exercicio.id}
-                  className="bg-white/5 border border-white/10 rounded-2xl p-4 shadow-lg"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-lg font-semibold">{exercicio.nome}</h3>
-                      <p className="text-white/40 text-sm">{exercicio.grupo}</p>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const atualizado = fichaSelecionada.exercicios.filter(x => x.id !== exercicio.id);
-                        const novoTreino = { ...fichaSelecionada, exercicios: atualizado };
-                        setFichaSelecionada(novoTreino);
-                        setTreinos(prev =>
-                          prev.map(t =>
-                            t.id === novoTreino.id ? novoTreino : t
-                          )
-                        );
-                      }}
-                      className="p-2 bg-red-900/20 rounded-full border border-red-600/40 hover:bg-red-900/40"
-                    >
-                      <Trash2 size={16} className="text-red-400"/>
-                    </button>
-                  </div>
-
-                  <div className="mt-3 text-sm text-white/60 space-y-1">
-                    <p><strong>Séries:</strong> {exercicio.series}</p>
-                    <p><strong>Reps:</strong> {exercicio.repeticoes}</p>
-                    <p><strong>Carga alvo:</strong> {exercicio.cargaAlvo}</p>
-                  </div>
-
-                  <details className="mt-3 bg-white/5 px-3 py-2 rounded">
-                    <summary className="cursor-pointer text-sm text-white/60 flex items-center gap-1">
-                      <BookOpen size={14}/> Instruções
-                    </summary>
-                    <p className="mt-2 text-white/50 text-sm">{exercicio.instrucoes}</p>
-                    <p className="mt-1 text-emerald-400 text-xs">{exercicio.dica}</p>
-                  </details>
-
-                  <div className="px-1 pt-4">
-                    <button
-                      onClick={() => iniciarDescanso(Number(exercicio.descanso))}
-                      className="w-full bg-slate-800 hover:bg-slate-700 py-3 rounded-lg flex items-center justify-center gap-2 text-sm font-bold border border-white/5 transition"
-                    >
-                      <Timer size={16} className="text-emerald-500" />
-                      DESCANSAR {exercicio.descanso}s
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {fichaSelecionada && (
-              <div className="px-4 mt-6 mb-20">
-                <h3 className="text-lg font-bold mb-2">Adicionar exercício</h3>
-                <div className="bg-white/5 border border-white/10 p-4 rounded-xl space-y-3">
-                  <input
-                    className="w-full bg-black/30 border border-white/10 p-2 rounded"
-                    placeholder="Nome do exercício"
-                    value={novoExercicio.nome}
-                    onChange={(e) => setNovoExercicio({ ...novoExercicio, nome: e.target.value })}
-                  />
-                  <input
-                    className="w-full bg-black/30 border border-white/10 p-2 rounded"
-                    placeholder="Grupo muscular"
-                    value={novoExercicio.grupo}
-                    onChange={(e) => setNovoExercicio({ ...novoExercicio, grupo: e.target.value })}
-                  />
-                  <div className="flex gap-2">
-                    <input
-                      className="w-1/3 bg-black/30 border border-white/10 p-2 rounded"
-                      type="number"
-                      placeholder="Séries"
-                      value={novoExercicio.series}
-                      onChange={(e) => setNovoExercicio({ ...novoExercicio, series: Number(e.target.value) })}
-                    />
-                    <input
-                      className="w-2/3 bg-black/30 border border-white/10 p-2 rounded"
-                      placeholder="Repetições"
-                      value={novoExercicio.repeticoes}
-                      onChange={(e) => setNovoExercicio({ ...novoExercicio, repeticoes: e.target.value })}
-                    />
-                  </div>
-                  <input
-                    className="w-full bg-black/30 border border-white/10 p-2 rounded"
-                    placeholder="Carga alvo"
-                    value={novoExercicio.cargaAlvo}
-                    onChange={(e) => setNovoExercicio({ ...novoExercicio, cargaAlvo: e.target.value })}
-                  />
-                  <input
-                    className="w-full bg-black/30 border border-white/10 p-2 rounded"
-                    placeholder="Descanso (segundos)"
-                    type="number"
-                    value={novoExercicio.descanso}
-                    onChange={(e) => setNovoExercicio({ ...novoExercicio, descanso: e.target.value })}
-                  />
-                  <textarea
-                    className="w-full bg-black/30 border border-white/10 p-2 rounded"
-                    placeholder="Instruções"
-                    value={novoExercicio.instrucoes}
-                    onChange={(e) => setNovoExercicio({ ...novoExercicio, instrucoes: e.target.value })}
-                  />
-                  <textarea
-                    className="w-full bg-black/30 border border-white/10 p-2 rounded"
-                    placeholder="Dicas"
-                    value={novoExercicio.dica}
-                    onChange={(e) => setNovoExercicio({ ...novoExercicio, dica: e.target.value })}
-                  />
-                  <button
-                    onClick={adicionarExercicio}
-                    className="w-full py-3 rounded-lg bg-emerald-700 hover:bg-emerald-600 transition font-bold flex items-center justify-center gap-2"
-                  >
-                    <Plus size={16} />
-                    Adicionar exercício
-                  </button>
-                </div>
-              </div>
-            )}
-          </>
-        );
-
-      case 'ferramentas':
-        return (
-          <div className="px-4 mt-4 space-y-6">
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-                <Calculator size={20} />
-                Calculadora 1RM
-              </h2>
-              
-              <div className="space-y-3">
-                <div>
-                  <label className="text-sm text-white/60">Peso levantado (kg)</label>
-                  <input
-                    type="number"
-                    className="w-full bg-black/30 border border-white/10 p-3 rounded mt-1"
-                    value={calcPeso}
-                    onChange={(e) => setCalcPeso(e.target.value)}
-                    placeholder="Ex: 80"
-                  />
-                </div>
-                
-                <div>
-                  <label className="text-sm text-white/60">Número de repetições</label>
-                  <input
-                    type="number"
-                    className="w-full bg-black/30 border border-white/10 p-3 rounded mt-1"
-                    value={calcReps}
-                    onChange={(e) => setCalcReps(e.target.value)}
-                    placeholder="Ex: 5"
-                  />
-                </div>
-                
-                <button
-                  onClick={calcular1RM}
-                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 rounded-lg font-bold"
-                >
-                  CALCULAR 1RM
-                </button>
-                
-                {resultado1RM && (
-                  <div className="mt-4 p-3 bg-emerald-900/20 border border-emerald-500/30 rounded-lg">
-                    <p className="text-center text-lg font-bold text-emerald-400">
-                      Seu 1RM estimado: {resultado1RM} kg
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        );
-
-      case 'historico':
-        return (
-          <div className="px-4 mt-4 space-y-4">
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-                <History size={20} />
-                Histórico de Treinos
-              </h2>
-              
-              {historico.length === 0 ? (
-                <p className="text-white/50 text-center py-8">
-                  Nenhum treino registrado ainda
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {historico.slice().reverse().map((registro) => (
-                    <div key={registro.id} className="bg-black/30 border border-white/10 rounded-lg p-3">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-semibold">{registro.treinoNome}</h3>
-                          <p className="text-sm text-white/60">
-                            {new Date(registro.data).toLocaleDateString('pt-BR')}
-                          </p>
-                        </div>
-                        <div className="text-sm text-white/40 flex items-center gap-1">
-                          <Clock size={14} />
-                          {registro.duracaoReal}min
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
+  const removerExercicio = (idEx: number) => {
+    if (!fichaSelecionada) return;
+    const novosTreinos = treinos.map(t => t.id === fichaSelecionada.id ? { ...t, exercicios: t.exercicios.filter(ex => ex.id !== idEx) } : t);
+    setTreinos(novosTreinos);
+    setFichaSelecionada(novosTreinos.find(t => t.id === fichaSelecionada.id) || null);
   };
+
+  // --- HELPERS ---
+  const calcular1RM = () => {
+    const peso = parseFloat(calcPeso);
+    const reps = parseFloat(calcReps);
+    if (peso && reps) setResultado1RM(Math.round(peso * (1 + reps / 30)));
+  };
+
+  const diasDaSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  const treinosEstaSemana = diasDaSemana.map((dia, index) => {
+    const hoje = new Date();
+    const diaAtual = hoje.getDay();
+    const treinouHoje = historico.some(h => new Date(h.data).getDay() === index && 
+      Math.abs(new Date(h.data).getTime() - new Date().getTime()) < 604800000 // Filtro básico de 7 dias
+    );
+    return { dia, ativo: treinouHoje, isToday: index === diaAtual };
+  });
+
+  const treinosFiltrados = treinos.filter(treino => filtroNivel === 'Todos' ? true : treino.nivel === filtroNivel);
+
+  // --- RENDERS ---
+
+  const RenderDashboard = () => (
+    <div className="space-y-6 animate-in fade-in">
+      {/* Card Streak */}
+      <div className="bg-gradient-to-r from-red-600 to-red-900 rounded-2xl p-6 shadow-xl text-white relative overflow-hidden">
+        <div className="relative z-10">
+           <h2 className="text-3xl font-black italic mb-1">BEM VINDO, MONSTRO</h2>
+           <p className="text-red-200 mb-6 font-medium">Sua consistência é seu superpoder.</p>
+           <div className="flex gap-8">
+              <div>
+                <p className="text-xs uppercase font-bold text-red-300">Ofensiva</p>
+                <p className="text-4xl font-black flex items-center gap-2"><Flame className="fill-orange-500 text-orange-500"/> {streak}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase font-bold text-red-300">Batalhas Vencidas</p>
+                <p className="text-4xl font-black">{historico.length}</p>
+              </div>
+           </div>
+        </div>
+        <Dumbbell className="absolute -right-6 -bottom-6 text-red-950 w-48 h-48 rotate-[-20deg]" />
+      </div>
+
+      {/* Frequência */}
+      <div className="bg-slate-900 border border-white/5 rounded-2xl p-6">
+        <h3 className="text-sm font-bold text-slate-400 uppercase mb-4 flex items-center gap-2"><CalendarDays size={16}/> Essa Semana</h3>
+        <div className="flex justify-between">
+          {treinosEstaSemana.map((item, i) => (
+             <div key={i} className="flex flex-col items-center gap-2">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                    item.ativo ? 'bg-emerald-500 shadow-[0_0_10px_#10b981]' : 
+                    item.isToday ? 'border border-slate-500' : 'bg-slate-800'
+                }`}>
+                  {item.ativo && <CheckCircle2 size={16} className="text-black"/>}
+                </div>
+                <span className={`text-[10px] font-bold ${item.isToday ? 'text-white' : 'text-slate-600'}`}>{item.dia}</span>
+             </div>
+          ))}
+        </div>
+      </div>
+
+      <button onClick={() => setAbaAtiva('treinos')} className="w-full bg-slate-100 hover:bg-white text-black font-black py-4 rounded-xl shadow-lg transform active:scale-95 transition flex items-center justify-center gap-2">
+        <PlayCircle size={24} /> COMEÇAR TREINO
+      </button>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-black text-white pb-20">
-      {/* ===================== CABEÇALHO FIXO ===================== */}
-      <header className="sticky top-0 z-40 bg-black/90 backdrop-blur border-b border-white/10">
-        <div className="flex items-center justify-between px-5 h-16">
-          <h1 className="text-xl font-bold flex items-center gap-2">
-            <Dumbbell size={20} className="text-emerald-400" />
-            GymTech
-          </h1>
+    <div className="min-h-screen bg-[#09090b] text-slate-100 font-sans pb-24 selection:bg-red-600 selection:text-white">
+      
+      {/* HEADER */}
+      <header className="bg-black/80 backdrop-blur-md border-b border-white/5 sticky top-0 z-30 px-4 py-4 flex justify-between items-center">
+        <div className="flex items-center gap-2">
+           <div className="bg-red-600 w-8 h-8 rounded flex items-center justify-center font-black italic text-white">G</div>
+           <span className="font-black italic tracking-tighter text-xl">GYM<span className="text-red-600">TECH</span></span>
         </div>
-
-        {/* ===== MENU SUPERIOR (NIVEL / FILTRO) ===== */}
-        {abaAtiva === 'treinos' && !fichaSelecionada && (
-          <div className="flex gap-2 overflow-x-auto px-4 pb-3 pt-1">
-            {['Todos','Iniciante','Intermediário','Avançado','Cardio','Aquecimento'].map((n) => (
-              <button
-                key={n}
-                onClick={() => setFiltroNivel(n as any)}
-                className={`px-4 py-2 rounded-full border text-sm whitespace-nowrap transition ${
-                  filtroNivel === n
-                    ? "bg-emerald-600 border-emerald-400"
-                    : "border-white/20 text-white/70"
-                }`}
-              >
-                {n}
-              </button>
-            ))}
-
-            <button
-              onClick={() => setModalNovoTreinoAberto(true)}
-              className="px-4 py-2 rounded-full border border-emerald-500/40 bg-emerald-900/20 text-emerald-300 flex items-center gap-2"
-            >
-              <Plus size={16}/> Novo
-            </button>
-          </div>
-        )}
+        <button 
+          onClick={() => setModalNovoTreinoAberto(true)}
+          className="bg-slate-900 border border-white/10 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-2 transition"
+        >
+          <Plus size={14} /> NOVO TREINO
+        </button>
       </header>
 
-      {/* ============================================================
-                          CONTEÚDO DAS ABAS
-      ============================================================ */}
-      {renderAbaConteudo()}
+      {/* CONTEÚDO PRINCIPAL */}
+      <main className="max-w-xl mx-auto px-4 py-6">
+         
+         {abaAtiva === 'home' && <RenderDashboard />}
+         
+         {abaAtiva === 'treinos' && (
+           <div className="space-y-6 animate-in fade-in">
+             <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+                {(['Todos', 'Aquecimento', 'Cardio', 'Iniciante', 'Intermediário', 'Avançado'] as const).map((nivel) => (
+                  <button key={nivel} onClick={() => setFiltroNivel(nivel)} className={`px-4 py-2 rounded-full text-xs font-bold uppercase whitespace-nowrap transition-all border ${
+                    filtroNivel === nivel ? 'bg-red-600 border-red-600 text-white' : 'bg-transparent border-slate-800 text-slate-500'
+                  }`}>
+                    {nivel}
+                  </button>
+                ))}
+             </div>
 
-      {/* ============================================================
-                           MODAL — NOVO TREINO
-      ============================================================ */}
-      {modalNovoTreinoAberto && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur z-50 flex items-center justify-center p-6">
-          <div className="bg-white/10 border border-white/20 rounded-xl p-6 w-full max-w-lg space-y-4 relative">
-            <button
-              onClick={() => setModalNovoTreinoAberto(false)}
-              className="absolute top-3 right-3 p-2 bg-red-900/30 rounded-full"
-            >
-              <X size={18} />
+             <div className="grid grid-cols-1 gap-4">
+               {treinosFiltrados.map((treino) => (
+                  <div key={treino.id} onClick={() => setFichaSelecionada(treino)} 
+                   className="bg-slate-900 h-40 rounded-xl border border-white/5 relative overflow-hidden cursor-pointer active:scale-95 transition group shadow-lg">
+                     <img src={treino.imagemCapa} className="w-full h-full object-cover opacity-50 grayscale group-hover:grayscale-0 transition duration-500"/>
+                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent p-5 flex flex-col justify-end">
+                        <div className="flex items-center gap-2 mb-1">
+                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
+                             treino.nivel === 'Cardio' ? 'bg-orange-500 text-black' : 
+                             treino.nivel === 'Aquecimento' ? 'bg-yellow-500 text-black' : 'bg-red-600 text-white'
+                           }`}>
+                             {treino.nivel}
+                           </span>
+                           <span className="text-[10px] font-bold text-slate-300 flex items-center gap-1"><Clock size={10}/> {treino.duracaoMin} min</span>
+                        </div>
+                        <h3 className="text-2xl font-black italic uppercase leading-none text-white">{treino.titulo}</h3>
+                     </div>
+                  </div>
+               ))}
+             </div>
+           </div>
+         )}
+
+         {abaAtiva === 'ferramentas' && (
+            <div className="space-y-6 animate-in slide-in-from-right">
+              <h2 className="text-2xl font-black italic text-white uppercase mb-4">Ferramentas Pro</h2>
+              <div className="bg-slate-900 border border-white/10 rounded-2xl p-6">
+                <div className="flex items-center gap-2 mb-4 text-blue-500"><Calculator size={24}/><h3 className="text-lg font-bold uppercase">Calculadora 1RM</h3></div>
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                   <input type="number" className="bg-black border border-white/10 p-3 rounded text-white font-bold" value={calcPeso} onChange={e => setCalcPeso(e.target.value)} placeholder="Carga (kg)"/>
+                   <input type="number" className="bg-black border border-white/10 p-3 rounded text-white font-bold" value={calcReps} onChange={e => setCalcReps(e.target.value)} placeholder="Reps"/>
+                </div>
+                {resultado1RM && <div className="bg-blue-900/20 p-4 rounded mb-4 text-center"><p className="text-sm text-blue-400 font-bold">1RM ESTIMADA</p><p className="text-4xl font-black text-white">{resultado1RM} kg</p></div>}
+                <button onClick={calcular1RM} className="w-full bg-blue-600 text-white font-bold py-3 rounded">CALCULAR</button>
+              </div>
+            </div>
+         )}
+
+         {abaAtiva === 'historico' && (
+            <div className="space-y-4 animate-in slide-in-from-right">
+              <h2 className="text-2xl font-black italic text-white uppercase mb-4">Histórico</h2>
+              {historico.length === 0 ? <p className="text-slate-500 text-center py-10">Sem treinos ainda.</p> : 
+                historico.map((h) => (
+                  <div key={h.id} className="bg-slate-900 border-l-4 border-red-600 p-4 rounded-r-xl flex justify-between items-center">
+                     <div><h4 className="font-bold text-white">{h.treinoNome}</h4><p className="text-xs text-slate-400">{new Date(h.data).toLocaleDateString()}</p></div>
+                     <p className="font-bold text-white">{h.duracaoReal} min</p>
+                  </div>
+              ))}
+            </div>
+         )}
+      </main>
+
+      {/* MENU INFERIOR */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur border-t border-white/10 py-2 px-6 z-40 flex justify-between items-center md:justify-center md:gap-12">
+         {([
+           {id: 'home', icon: LayoutDashboard, label: 'Home'},
+           {id: 'treinos', icon: Dumbbell, label: 'Treinar'},
+           {id: 'ferramentas', icon: Calculator, label: 'Tools'},
+           {id: 'historico', icon: History, label: 'Hist'}
+         ] as const).map(item => (
+            <button key={item.id} onClick={() => setAbaAtiva(item.id)} className={`flex flex-col items-center gap-1 p-2 ${abaAtiva === item.id ? 'text-red-500' : 'text-slate-500'}`}>
+               <item.icon size={24} /> <span className="text-[10px] font-bold uppercase">{item.label}</span>
             </button>
+         ))}
+      </nav>
 
-            <h2 className="text-xl font-bold">Novo treino</h2>
+      {/* MODAL TREINO ATIVO & EDITOR */}
+      {fichaSelecionada && (
+        <div className="fixed inset-0 z-50 bg-[#09090b] overflow-y-auto animate-in slide-in-from-bottom duration-300 pb-20">
+           <div className="sticky top-0 bg-black/90 backdrop-blur border-b border-white/10 p-4 flex justify-between items-center z-10">
+              <div><h2 className="text-lg font-black italic uppercase text-white w-48 truncate">{fichaSelecionada.titulo}</h2><p className="text-xs text-slate-400">{fichaSelecionada.duracaoMin} min</p></div>
+              <button onClick={() => setFichaSelecionada(null)} className="bg-slate-800 p-2 rounded-full text-slate-400"><ChevronDown/></button>
+           </div>
 
-            <input
-              className="w-full bg-black/30 border border-white/20 p-2 rounded"
-              placeholder="Título"
-              value={novoTreino.titulo}
-              onChange={(e) => setNovoTreino({ ...novoTreino, titulo: e.target.value })}
-            />
+           <div className="p-4 space-y-4">
+              {fichaSelecionada.exercicios.map((exercicio, idx) => (
+                 <div key={exercicio.id} className="bg-slate-900 border border-white/5 rounded-xl overflow-hidden relative group">
+                    <button onClick={() => removerExercicio(exercicio.id)} className="absolute top-2 right-2 text-slate-700 hover:text-red-500 p-2"><Trash2 size={16}/></button>
+                    <div className="p-4 border-b border-white/5 flex justify-between items-center bg-black/20">
+                       <h4 className="font-bold text-white uppercase text-sm flex items-center gap-2">
+                         <span className="bg-red-600 text-white w-6 h-6 flex items-center justify-center rounded text-xs">{idx + 1}</span> {exercicio.nome}
+                       </h4>
+                       <button onClick={() => window.open(`https://www.youtube.com/results?search_query=execução ${exercicio.nome}`, '_blank')} className="text-red-500 mr-8"><PlayCircle size={20}/></button>
+                    </div>
+                    <div className="p-4 grid grid-cols-2 gap-4">
+                       <div className="bg-black p-3 rounded border border-white/10"><p className="text-[10px] uppercase font-bold text-slate-500">Alvo</p><p className="text-white font-bold">{exercicio.cargaAlvo}</p></div>
+                       <div className="bg-black p-3 rounded border border-white/10"><p className="text-[10px] uppercase font-bold text-slate-500">Carga</p><input type="text" className="bg-transparent text-white font-bold w-full outline-none" placeholder="Add peso" value={logCargas[exercicio.id] || ''} onChange={(e) => atualizarCarga(exercicio.id, e.target.value)}/></div>
+                    </div>
+                    <div className="px-4 pb-4"><button onClick={() => iniciarDescanso(Number(exercicio.descanso))} className="w-full bg-slate-800 hover:bg-slate-700 py-3 rounded-lg flex items-center justify-center gap-2 text-sm font-bold transition border border-white/5"><Timer size={16} className="text-emerald-500"/> DESCANSAR {exercicio.descanso}s</button></div>
+                    <details className="px-4 pb-4 text-xs text-slate-400"><summary className="cursor-pointer font-bold uppercase text-slate-600 list-none flex gap-2 items-center"><BookOpen size={12}/> Instruções</summary><div className="mt-2 pl-2 border-l-2 border-red-600/30"><p>{exercicio.instrucoes}</p><p className="mt-1 text-yellow-500">{exercicio.dica}</p></div></details>
+                 </div>
+              ))}
+           </div>
 
-            <textarea
-              className="w-full bg-black/30 border border-white/20 p-2 rounded"
-              placeholder="Descrição"
-              value={novoTreino.descricao}
-              onChange={(e) => setNovoTreino({ ...novoTreino, descricao: e.target.value })}
-            />
+           {/* ADD EXERCICIO (Personalização) */}
+           <div className="px-4 pt-4 pb-8 border-t border-white/5">
+             <h3 className="text-sm font-bold text-slate-500 uppercase mb-4 flex items-center gap-2"><Plus size={16}/> Adicionar Exercício</h3>
+             <form onSubmit={adicionarExercicio} className="space-y-3 bg-slate-900 p-4 rounded-xl">
+                <input className="w-full bg-black border border-white/10 rounded p-3 text-white text-sm" placeholder="Nome do Exercício" value={novoExercicio.nome} onChange={e => setNovoExercicio({...novoExercicio, nome: e.target.value})} required/>
+                <div className="grid grid-cols-2 gap-3">
+                   <input className="bg-black border border-white/10 rounded p-3 text-white text-sm" placeholder="Séries" value={novoExercicio.series} onChange={e => setNovoExercicio({...novoExercicio, series: Number(e.target.value)})}/>
+                   <input className="bg-black border border-white/10 rounded p-3 text-white text-sm" placeholder="Reps" value={novoExercicio.repeticoes} onChange={e => setNovoExercicio({...novoExercicio, repeticoes: e.target.value})}/>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                   <input className="bg-black border border-white/10 rounded p-3 text-white text-sm" placeholder="Carga Alvo" value={novoExercicio.cargaAlvo} onChange={e => setNovoExercicio({...novoExercicio, cargaAlvo: e.target.value})}/>
+                   <input className="bg-black border border-white/10 rounded p-3 text-white text-sm" placeholder="Descanso (s)" value={novoExercicio.descanso} onChange={e => setNovoExercicio({...novoExercicio, descanso: e.target.value})}/>
+                </div>
+                <textarea className="w-full bg-black border border-white/10 rounded p-3 text-white text-sm h-20" placeholder="Instruções..." value={novoExercicio.instrucoes} onChange={e => setNovoExercicio({...novoExercicio, instrucoes: e.target.value})}/>
+                <button type="submit" className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded">+ Adicionar</button>
+             </form>
+           </div>
 
-            <input
-              className="w-full bg-black/30 border border-white/20 p-2 rounded"
-              placeholder="Imagem URL"
-              value={novoTreino.imagemCapa}
-              onChange={(e) => setNovoTreino({ ...novoTreino, imagemCapa: e.target.value })}
-            />
-
-            <select
-              className="w-full bg-black/30 border border-white/20 p-2 rounded"
-              value={novoTreino.nivel}
-              onChange={(e) => setNovoTreino({ ...novoTreino, nivel: e.target.value as any })}
-            >
-              <option>Iniciante</option>
-              <option>Intermediário</option>
-              <option>Avançado</option>
-              <option>Cardio</option>
-              <option>Aquecimento</option>
-            </select>
-
-            <button
-              onClick={adicionarNovoTreino}
-              className="w-full py-3 rounded-lg bg-emerald-700 hover:bg-emerald-600 transition font-bold flex items-center justify-center gap-2"
-            >
-              <Save size={16} />
-              Salvar treino
-            </button>
-          </div>
+           <div className="p-4 pb-32"><button onClick={finalizarTreino} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-xl uppercase flex items-center justify-center gap-2"><CheckCircle2 size={24}/> Finalizar Treino</button></div>
         </div>
       )}
 
-      {/* ============================================================
-                          TIMER FLUTUANTE
-      ============================================================ */}
+      {/* TIMER FLUTUANTE */}
       {timerAtivo && (
         <div className="fixed bottom-24 left-4 right-4 bg-black/95 backdrop-blur border border-red-500/50 rounded-2xl p-4 flex items-center justify-between z-50 shadow-2xl">
           <div className="flex items-center gap-4">
-            <div className="relative w-12 h-12 flex items-center justify-center">
-              <span className="font-mono font-bold text-white text-sm">
-                {Math.floor(tempoRestante / 60)}:
-                {tempoRestante % 60 < 10 ? '0' : ''}
-                {tempoRestante % 60}
-              </span>
-            </div>
-
-            <div>
-              <p className="text-[10px] font-bold text-slate-500 uppercase">Descanso</p>
-              <p className="text-red-500 font-bold text-sm animate-pulse">RECUPERANDO...</p>
-            </div>
+            <div className="relative w-12 h-12 flex items-center justify-center"><span className="font-mono font-bold text-white text-sm">{Math.floor(tempoRestante/60)}:{tempoRestante%60 < 10 ? '0' : ''}{tempoRestante%60}</span></div>
+            <div><p className="text-[10px] font-bold text-slate-500 uppercase">Descanso</p><p className="text-red-500 font-bold text-sm animate-pulse">RECUPERANDO...</p></div>
           </div>
-
-          <button
-            onClick={() => setTimerAtivo(false)}
-            className="px-3 py-2 bg-red-900/20 text-red-500 rounded text-xs font-bold"
-          >
-            PARAR
-          </button>
+          <button onClick={() => setTimerAtivo(false)} className="px-3 py-2 bg-red-900/20 text-red-500 rounded text-xs font-bold">PARAR</button>
         </div>
       )}
 
-      {/* ============================================================
-                             NAV BAR INFERIOR
-      ============================================================ */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-black/90 border-t border-white/10 h-16 flex items-center justify-around text-sm backdrop-blur z-40">
-        <button onClick={() => setAbaAtiva('home')} className="flex flex-col items-center gap-1">
-          <LayoutDashboard size={18} className={abaAtiva === 'home' ? "text-emerald-400" : "text-white/40"} />
-          <span className={abaAtiva === 'home' ? "text-emerald-400" : "text-white/40"}>Home</span>
-        </button>
-
-        <button onClick={() => setAbaAtiva('treinos')} className="flex flex-col items-center gap-1">
-          <Dumbbell size={18} className={abaAtiva === 'treinos' ? "text-emerald-400" : "text-white/40"} />
-          <span className={abaAtiva === 'treinos' ? "text-emerald-400" : "text-white/40"}>Treinos</span>
-        </button>
-
-        <button onClick={() => setAbaAtiva('ferramentas')} className="flex flex-col items-center gap-1">
-          <Calculator size={18} className={abaAtiva === 'ferramentas' ? "text-emerald-400" : "text-white/40"} />
-          <span className={abaAtiva === 'ferramentas' ? "text-emerald-400" : "text-white/40"}>1RM</span>
-        </button>
-
-        <button onClick={() => setAbaAtiva('historico')} className="flex flex-col items-center gap-1">
-          <History size={18} className={abaAtiva === 'historico' ? "text-emerald-400" : "text-white/40"} />
-          <span className={abaAtiva === 'historico' ? "text-emerald-400" : "text-white/40"}>Histórico</span>
-        </button>
-      </nav>
+      {/* MODAL NOVA FICHA */}
+      {modalNovoTreinoAberto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
+          <div className="bg-slate-900 w-full max-w-md rounded-xl border border-white/10 p-6">
+            <h2 className="text-xl font-black text-white uppercase italic mb-4">Nova Ficha</h2>
+            <form onSubmit={salvarNovoTreino} className="space-y-3">
+              <input className="w-full bg-black border border-white/10 rounded p-3 text-white" placeholder="Nome" required value={novoTreino.titulo} onChange={e => setNovoTreino({...novoTreino, titulo: e.target.value})} />
+              <textarea className="w-full bg-black border border-white/10 rounded p-3 text-white h-20" placeholder="Descrição" required value={novoTreino.descricao} onChange={e => setNovoTreino({...novoTreino, descricao: e.target.value})} />
+              <div className="grid grid-cols-2 gap-4">
+                  <select className="bg-black border border-white/10 rounded p-3 text-white" value={novoTreino.nivel} onChange={e => setNovoTreino({...novoTreino, nivel: e.target.value as Nivel})}>
+                    <option value="Iniciante">Iniciante</option>
+                    <option value="Intermediário">Intermediário</option>
+                    <option value="Avançado">Avançado</option>
+                    <option value="Cardio">Cardio</option>
+                    <option value="Aquecimento">Aquecimento</option>
+                  </select>
+                  <input type="number" className="bg-black border border-white/10 rounded p-3 text-white" placeholder="Minutos" value={novoTreino.duracaoMin} onChange={e => setNovoTreino({...novoTreino, duracaoMin: Number(e.target.value)})}/>
+              </div>
+              <button type="submit" className="w-full bg-white text-black font-black py-3 rounded hover:bg-slate-200 transition">CRIAR</button>
+              <button type="button" onClick={() => setModalNovoTreinoAberto(false)} className="w-full text-slate-500 text-sm py-2">Cancelar</button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
