@@ -83,7 +83,6 @@ function App() {
 
   // --- PERSISTÊNCIA & GAMIFICATION ---
   const [historico, setHistorico] = useState<RegistroHistorico[]>([]);
-  const [logCargas, setLogCargas] = useState<Record<number, string>>({});
   const [streak, setStreak] = useState(0);
 
   // --- TIMER ---
@@ -114,11 +113,9 @@ function App() {
 
   // --- INIT ---
   useEffect(() => {
-    const logs = localStorage.getItem('gymtech_logs');
     const hist = localStorage.getItem('gymtech_history');
     const strk = localStorage.getItem('gymtech_streak');
 
-    if (logs) setLogCargas(JSON.parse(logs));
     if (hist) setHistorico(JSON.parse(hist));
     if (strk) setStreak(Number(strk));
 
