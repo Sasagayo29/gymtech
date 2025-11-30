@@ -10,6 +10,13 @@
 
 ## 📸 Preview
 
+<img width="460" height="927" alt="image" src="https://github.com/user-attachments/assets/10ce86dc-c42e-4f3f-b25a-382d331e9ab2" />
+<img width="460" height="927" alt="image" src="https://github.com/user-attachments/assets/b80db7ce-3085-4824-84f8-c1513aef1b30" />
+<img width="460" height="927" alt="image" src="https://github.com/user-attachments/assets/2ac719fb-2964-4a53-b8e6-44ea94dd6ac7" />
+
+
+
+
 ## 🚀 Sobre o Projeto
 
 O **GymTech** é uma Progressive Web App (PWA) desenvolvida para substituir fichas de papel e apps genéricos. Focado em performance e usabilidade, ele oferece um sistema completo de gestão de treinos com **Gamificação (RPG)** e ferramentas de nível profissional.
