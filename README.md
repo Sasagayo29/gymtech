@@ -61,7 +61,7 @@ Siga os passos abaixo para rodar o monstro na sua máquina:
 
 1. **Clone o repositório:**
    ```bash
-   git clone [https://github.com/SEU-USUARIO/gymtech.git](https://github.com/SEU-USUARIO/gymtech.git)
+   git clone https://github.com/SEU-USUARIO/gymtech.git
    ```
 2. **Entre na pasta:**
    ```bash
