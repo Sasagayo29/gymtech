@@ -1,73 +1,96 @@
-# React + TypeScript + Vite
+# 💪 GymTech OS - God Mode Edition
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+![Project Status](https://img.shields.io/badge/status-active-emerald)
+![Tech Stack](https://img.shields.io/badge/stack-React_TS_Tailwind-blue)
+![License](https://img.shields.io/badge/license-MIT-grey)
 
-Currently, two official plugins are available:
+> **O ecossistema definitivo para quem treina de verdade.** > De iniciantes a Mr. Olympia, o GymTech transforma seu navegador em um Personal Trainer de elite.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## 📸 Preview
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+<img width="360" height="927" alt="image" src="https://github.com/user-attachments/assets/10ce86dc-c42e-4f3f-b25a-382d331e9ab2" />
+<img width="360" height="927" alt="image" src="https://github.com/user-attachments/assets/b80db7ce-3085-4824-84f8-c1513aef1b30" />
+<img width="360" height="927" alt="image" src="https://github.com/user-attachments/assets/2ac719fb-2964-4a53-b8e6-44ea94dd6ac7" />
 
-## Expanding the ESLint configuration
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 🚀 Sobre o Projeto
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+O **GymTech** é uma Progressive Web App (PWA) desenvolvida para substituir fichas de papel e apps genéricos. Focado em performance e usabilidade, ele oferece um sistema completo de gestão de treinos com **Gamificação (RPG)** e ferramentas de nível profissional.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Diferente de apps comuns, o GymTech roda 100% no navegador (Client-side) utilizando **LocalStorage**, garantindo privacidade total e funcionamento instantâneo sem necessidade de login ou backend.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🔥 Funcionalidades (God Mode)
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### 🏋️‍♂️ Gestão de Treinos
+- **Fichas Completas:** 12+ rotinas pré-configuradas (Iniciante, ABC, PPL, Arnold Split, Cardio, Mobilidade).
+- **Modo Foco:** Interface imersiva de treino com cronômetro de descanso integrado.
+- **Instruções Detalhadas:** Guia passo-a-passo e "Dica de Mestre" para cada exercício.
+- **Editor Flexível:** Crie, edite e personalize suas próprias fichas.
+
+### 🎮 Gamificação RPG
+- **Sistema de Ranks:** Evolua de *Iniciante* a *Mr. Olympia* baseado na sua constância.
+- **Streak Counter:** Contador de ofensiva (dias seguidos) para manter a disciplina.
+- **Histórico de Batalha:** Log completo de todos os treinos realizados.
+
+### 🛠️ Ferramentas Pro
+- **Plate Calculator (Calculadora de Anilhas):** Visualizador gráfico de quais anilhas colocar na barra.
+- **1RM Estimada:** Calculadora de força máxima baseada na fórmula de Epley.
+- **Diário de Cargas:** O app lembra quanto peso você pegou na última vez.
+
+---
+
+## 🛠️ Tecnologias Utilizadas
+
+Este projeto foi construído com a stack mais moderna do mercado:
+
+- **[React](https://reactjs.org/)** - Biblioteca para interfaces dinâmicas.
+- **[TypeScript](https://www.typescriptlang.org/)** - Tipagem estática para código robusto.
+- **[Vite](https://vitejs.dev/)** - Build tool de extrema velocidade.
+- **[Tailwind CSS](https://tailwindcss.com/)** - Estilização utility-first para visual "Dark Mode" premium.
+- **[Lucide React](https://lucide.dev/)** - Ícones leves e modernos.
+
+---
+
+## 💻 Como Rodar Localmente
+
+Siga os passos abaixo para rodar o monstro na sua máquina:
+
+1. **Clone o repositório:**
+   ```bash
+   git clone https://github.com/SEU-USUARIO/gymtech.git
+   ```
+2. **Entre na pasta:**
+   ```bash
+   cd GymTech
+   ```
+3. **Instale as dependências:**
+   ```bash
+   npm install
+   ```
+4. **Rode o servidor de desenvolvimento:**
+   ```bash
+   npm run dev
+   ```
+5. **Acesse: Abra `http://localhost:5173` no seu navegador.**
+---
+
+## 🌐 Deploy
+O projeto está configurado para deploy automático na **Vercel**.
+
+---
+## 🤝 Contribuição
+Contribuições são o que fazem a comunidade open source um lugar incrível. Qualquer contribuição é muito bem-vinda.
+
+1. Faça um Fork do projeto
+2. Crie uma Branch para sua Feature (`git checkout -b feature/RecursoIncrivel`)
+3. Faça o Commit (`git commit -m 'Add some RecursoIncrivel'`)
+4. Push para a Branch (`git push origin feature/RecursoIncrivel`)
+5. Abra um Pull Request
+
+---
+## 📝 Licença
+Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
